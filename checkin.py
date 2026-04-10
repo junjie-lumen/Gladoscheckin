@@ -68,7 +68,7 @@ def load_config() -> Tuple[str, List[str], str]:
 
     if not exchange_plan_env:
         logger.warning(f"环境变量 '{ENV_EXCHANGE_PLAN}' 未设置，将使用默认兑换计划 'plan500'。")
-        exchange_plan = "plan500"
+        exchange_plan = None
     else: 
         if exchange_plan_env in EXCHANGE_POINTS:
              exchange_plan = exchange_plan_env
@@ -179,8 +179,10 @@ def checkin_and_process(cookie: str, exchange_plan: str) -> Tuple[str, str, str,
     except (ValueError, TypeError):
         logger.warning(f"无法解析当前积分数值，可能影响兑换判断: {remaining_points}")
 
-    required_points = EXCHANGE_POINTS.get(exchange_plan, 500) 
-    if current_points_numeric >= required_points:
+    if exchange_plan is None:
+        exchange_msg = "未配置兑换计划，跳过兑换"
+    elif current_points_numeric >= EXCHANGE_POINTS.get(exchange_plan, 500):
+        required_points = EXCHANGE_POINTS.get(exchange_plan, 500)  # ← 加这行
         logger.info(f"开始兑换 {exchange_plan} 计划 (需要 {required_points} 积分)")
         exchange_response = make_request(EXCHANGE_URL, 'POST', HEADERS_TEMPLATE, {"planType": exchange_plan}, cookies=cookie)
         if exchange_response:
@@ -198,7 +200,7 @@ def checkin_and_process(cookie: str, exchange_plan: str) -> Tuple[str, str, str,
         else:
             exchange_msg = f"兑换请求失败：{exchange_plan}"
     else:
-        logger.info(f"积分不足以兑换 {exchange_plan}。所需: {required_points}, 当前: {current_points_numeric}")
+        logger.info(f"积分不足以兑换 {exchange_plan}。所需: {EXCHANGE_POINTS.get(exchange_plan)}, 当前: {current_points_numeric}")
         exchange_msg = f"积分不足，未兑换: {exchange_plan}"
 
     return status_msg, points_gained, remaining_days, remaining_points, exchange_msg
