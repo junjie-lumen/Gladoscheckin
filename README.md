@@ -2,7 +2,7 @@
 
 ## 食用方式：
 
-### 注册一个GLaDOS的账号([注册地址](https://glados.cloud/register)
+### 注册一个GLaDOS的账号([注册地址](https://glados.cloud/register))
 
 
 ### **Fork**本仓库
